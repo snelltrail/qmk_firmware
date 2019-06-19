@@ -247,12 +247,6 @@ bool process_record_quantum(keyrecord_t *record) {
     preprocess_tap_dance(keycode, record);
   #endif
 
-  #if defined(OLED_DRIVER_ENABLE) && !defined(OLED_DISABLE_TIMEOUT)
-    // Wake up oled if user is using those fabulous keys!
-    if (record->event.pressed)
-      oled_on();
-  #endif
-
   if (!(
   #if defined(KEY_LOCK_ENABLE)
     // Must run first to be able to mask key_up events.
@@ -264,7 +258,7 @@ bool process_record_quantum(keyrecord_t *record) {
   #ifdef HAPTIC_ENABLE
     process_haptic(keycode, record) &&
   #endif //HAPTIC_ENABLE
-  #if defined(RGB_MATRIX_ENABLE) && defined(RGB_MATRIX_KEYREACTIVE_ENABLED)
+  #if defined(RGB_MATRIX_ENABLE)
     process_rgb_matrix(keycode, record) &&
   #endif
     process_record_kb(keycode, record) &&
@@ -318,8 +312,12 @@ bool process_record_quantum(keyrecord_t *record) {
     return false;
     case DEBUG:
       if (record->event.pressed) {
-          debug_enable = true;
+        debug_enable ^= 1;
+        if (debug_enable) {
           print("DEBUG: enabled.\n");
+        } else {
+          print("DEBUG: disabled.\n");
+        }
       }
     return false;
     case EEPROM_RESET:
@@ -976,9 +974,6 @@ void matrix_init_quantum() {
   #ifdef OUTPUT_AUTO_ENABLE
     set_output(OUTPUT_AUTO);
   #endif
-  #ifdef OLED_DRIVER_ENABLE
-    oled_init(OLED_ROTATION_0);
-  #endif
   matrix_init_kb();
 }
 
@@ -1015,10 +1010,6 @@ void matrix_scan_quantum() {
     haptic_task();
   #endif
 
-  #ifdef OLED_DRIVER_ENABLE
-    oled_task();
-  #endif
-
   matrix_scan_kb();
 }
 #if defined(BACKLIGHT_ENABLE) && (defined(BACKLIGHT_PIN) || defined(BACKLIGHT_PINS))
@@ -1036,35 +1027,49 @@ void matrix_scan_quantum() {
 #  define TCCRxB TCCR1B
 #  define COMxx1 COM1C1
 #  define OCRxx  OCR1C
+#  define TIMERx_OVF_vect TIMER1_OVF_vect
+#  define TOIEx  TOIE1
 #  define ICRx   ICR1
+#  define TIMSKx TIMSK1
 #elif BACKLIGHT_PIN == B6
 #  define HARDWARE_PWM
 #  define TCCRxA TCCR1A
 #  define TCCRxB TCCR1B
 #  define COMxx1 COM1B1
 #  define OCRxx  OCR1B
+#  define TIMERx_OVF_vect TIMER1_OVF_vect
+#  define TOIEx  TOIE1
 #  define ICRx   ICR1
+#  define TIMSKx TIMSK1
 #elif BACKLIGHT_PIN == B5
 #  define HARDWARE_PWM
 #  define TCCRxA TCCR1A
 #  define TCCRxB TCCR1B
 #  define COMxx1 COM1A1
 #  define OCRxx  OCR1A
+#  define TIMERx_OVF_vect TIMER1_OVF_vect
+#  define TOIEx  TOIE1
 #  define ICRx   ICR1
+#  define TIMSKx TIMSK1
 #elif BACKLIGHT_PIN == C6
 #  define HARDWARE_PWM
 #  define TCCRxA TCCR3A
 #  define TCCRxB TCCR3B
-#  define COMxx1 COM1A1
+#  define COMxx1 COM3A1
 #  define OCRxx  OCR3A
+#  define TIMERx_OVF_vect TIMER3_OVF_vect
+#  define TOIEx  TOIE3
 #  define ICRx   ICR3
+#  define TIMSKx TIMSK3
 #elif defined(__AVR_ATmega32A__) && BACKLIGHT_PIN == D4
 #  define TCCRxA TCCR1A
 #  define TCCRxB TCCR1B
 #  define COMxx1 COM1B1
 #  define OCRxx  OCR1B
+#  define TIMERx_OVF_vect TIMER1_OVF_vect
+#  define TOIEx  TOIE1
 #  define ICRx   ICR1
-#  define TIMSK1 TIMSK
+#  define TIMSKx TIMSK1
 #else
 #  if !defined(BACKLIGHT_CUSTOM_DRIVER)
 #    if !defined(B5_AUDIO) && !defined(B6_AUDIO) && !defined(B7_AUDIO)
@@ -1075,15 +1080,15 @@ void matrix_scan_quantum() {
 #      define TCCRxA TCCR1A
 #      define TCCRxB TCCR1B
 #      define OCRxx  OCR1A
-#      define OCRxAH OCR1AH
-#      define OCRxAL OCR1AL
 #      define TIMERx_COMPA_vect TIMER1_COMPA_vect
 #      define TIMERx_OVF_vect TIMER1_OVF_vect
 #      define OCIExA OCIE1A
 #      define TOIEx  TOIE1
 #      define ICRx   ICR1
-#      ifndef TIMSK
-#        define TIMSK TIMSK1
+#      if defined(__AVR_ATmega32A__) // This MCU has only one TIMSK register
+#        define TIMSKx TIMSK
+#      else
+#        define TIMSKx TIMSK1
 #      endif
 #    elif !defined(C6_AUDIO) && !defined(C5_AUDIO) && !defined(C4_AUDIO)
 #pragma message "Using hardware timer 3 with software PWM"
@@ -1093,16 +1098,12 @@ void matrix_scan_quantum() {
 #      define TCCRxA TCCR3A
 #      define TCCRxB TCCR3B
 #      define OCRxx OCR3A
-#      define OCRxAH OCR3AH
-#      define OCRxAL OCR3AL
 #      define TIMERx_COMPA_vect TIMER3_COMPA_vect
 #      define TIMERx_OVF_vect TIMER3_OVF_vect
 #      define OCIExA OCIE3A
 #      define TOIEx  TOIE3
 #      define ICRx   ICR1
-#      ifndef TIMSK
-#        define TIMSK TIMSK3
-#      endif
+#      define TIMSKx TIMSK3
 #    else
 #pragma message "Audio in use - using pure software PWM"
 #define NO_HARDWARE_PWM
@@ -1214,10 +1215,10 @@ void backlight_task(void) {
 // (which is not possible since the backlight is not wired to PWM pins on the
 // CPU), we do the LED on/off by oursleves.
 // The timer is setup to count up to 0xFFFF, and we set the Output Compare
-// register to the current 16bits backlight level (after CIE correction). 
-// This means the CPU will trigger a compare match interrupt when the counter 
-// reaches the backlight level, where we turn off the LEDs, 
-// but also an overflow interrupt when the counter rolls back to 0, 
+// register to the current 16bits backlight level (after CIE correction).
+// This means the CPU will trigger a compare match interrupt when the counter
+// reaches the backlight level, where we turn off the LEDs,
+// but also an overflow interrupt when the counter rolls back to 0,
 // in which we're going to turn on the LEDs.
 // The LED will then be on for OCRxx/0xFFFF time, adjusted every 244Hz.
 
@@ -1229,7 +1230,7 @@ ISR(TIMERx_COMPA_vect) {
 }
 
 // Triggered when the counter reaches the TOP value
-// this one triggers at F_CPU/65536 =~ 244 Hz 
+// this one triggers at F_CPU/65536 =~ 244 Hz
 ISR(TIMERx_OVF_vect) {
 #ifdef BACKLIGHT_BREATHING
   breathing_task();
@@ -1283,8 +1284,8 @@ void backlight_set(uint8_t level) {
   if (level == 0) {
     #ifdef BACKLIGHT_PWM_TIMER
       if (OCRxx) {
-        TIMSK &= ~(_BV(OCIExA));
-        TIMSK &= ~(_BV(TOIEx));
+        TIMSKx &= ~(_BV(OCIExA));
+        TIMSKx &= ~(_BV(TOIEx));
         FOR_EACH_LED(
           backlight_off(backlight_pin);
         )
@@ -1296,8 +1297,8 @@ void backlight_set(uint8_t level) {
   } else {
     #ifdef BACKLIGHT_PWM_TIMER
       if (!OCRxx) {
-        TIMSK |= _BV(OCIExA);
-        TIMSK |= _BV(TOIEx);
+        TIMSKx |= _BV(OCIExA);
+        TIMSKx |= _BV(TOIEx);
       }
     #else
     // Turn on PWM control of backlight pin
@@ -1334,11 +1335,11 @@ bool is_breathing(void) {
 #else
 
 bool is_breathing(void) {
-    return !!(TIMSK1 & _BV(TOIE1));
+    return !!(TIMSKx & _BV(TOIEx));
 }
 
-#define breathing_interrupt_enable() do {TIMSK1 |= _BV(TOIE1);} while (0)
-#define breathing_interrupt_disable() do {TIMSK1 &= ~_BV(TOIE1);} while (0)
+#define breathing_interrupt_enable() do {TIMSKx |= _BV(TOIEx);} while (0)
+#define breathing_interrupt_disable() do {TIMSKx &= ~_BV(TOIEx);} while (0)
 #endif
 
 #define breathing_min() do {breathing_counter = 0;} while (0)
@@ -1420,7 +1421,7 @@ void breathing_task(void)
 /* Assuming a 16MHz CPU clock and a timer that resets at 64k (ICR1), the following interrupt handler will run
  * about 244 times per second.
  */
-ISR(TIMER1_OVF_vect)
+ISR(TIMERx_OVF_vect)
 #endif
 {
   uint16_t interval = (uint16_t) breathing_period * 244 / BREATHING_STEPS;
