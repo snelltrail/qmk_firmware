@@ -2,6 +2,7 @@
 
 #define BASE 0
 #define FIRST 1
+#define SECOND 2
 
 enum custom_keycodes {
   LATEXMK = SAFE_RANGE,
@@ -10,7 +11,10 @@ enum custom_keycodes {
   LATEX_DEBUG,
   LATEX_CONT,
   CTRL_C,
-  EMAIL
+  SNELLTRAIL,
+  EMAIL,
+  FIRSTNAME,
+  LASTNAME
 };
 
 enum {
@@ -66,6 +70,27 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         SEND_STRING("dsnell2009@gmail.com");
       } else {
         // when key released
+      } 
+      break;
+    case SNELLTRAIL:
+      if(record->event.pressed) {
+        SEND_STRING("snelltrail");
+      } else {
+        // when key released
+      }
+      break;
+    case FIRSTNAME:
+      if(record->event.pressed) {
+        SEND_STRING("Daniel");
+      } else {
+        // when key released
+      }
+      break;
+    case LASTNAME:
+      if(record->event.pressed) {
+        SEND_STRING("Snell");
+      } else {
+        // when key released
       }
       break;
   }
@@ -82,15 +107,15 @@ qk_tap_dance_action_t tap_dance_actions[] = {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [BASE] = LAYOUT(
-        LATEXMK, LATEX_TIDY, LATEX_CLEAN, 
+        RGB_TOG, LATEX_TIDY, LATEX_CLEAN, 
         LATEX_DEBUG, CTRL_C, TG(1)),
 
     [FIRST] = LAYOUT(
         RESET, LATEX_CONT, EMAIL, 
-        TD(TD_ONE_TWO), KC_TRANSPARENT, TG(1)),
+        TD(TD_ONE_TWO), TG(2), TG(1)),
 
-    LAYOUT(
-        KC_NO,  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO),
+    [SECOND] = LAYOUT(
+        SNELLTRAIL,  EMAIL, FIRSTNAME, LASTNAME, TG(2), KC_NO),
 
     LAYOUT(
         KC_NO,  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO) };
