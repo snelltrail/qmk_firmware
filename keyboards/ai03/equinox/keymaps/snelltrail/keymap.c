@@ -26,24 +26,24 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,   KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC, 
     KC_LGUI,   KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT, 
     KC_LSFT, KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  LT(3, KC_SLASH), 
-    MO(2), KC_LGUI, KC_LALT,          LT(1, KC_SPC),           KC_SPC,       LT(2,KC_BSPC),      KC_RALT,  KC_RGUI, MO(2) 
+    MO(2), KC_LGUI, KC_LALT,          LT(1, KC_SPC),           KC_SPC,       LT(2,KC_BSPC),      MO(1),  KC_RGUI, MO(2) 
   ),
   [1] = LAYOUT_all( /* Numbers,       */
     KC_ESC, LALT(KC_1),      LALT(KC_2),      LALT(KC_3),      LALT(KC_4), KC_LBRC, KC_7, KC_8, KC_9,   KC_LBRC, KC_RBRC, _______, 
-    _______, KC_HOME, KC_PGDN, KC_END,  _______, KC_BSLS, KC_4, KC_5, KC_6, _______, _______, KC_QUOT, 
+    _______, LALT(KC_A), LALT(KC_S), LALT(KC_D),  LALT(KC_F), LALT(KC_G), KC_4, KC_5, KC_6, _______, _______, KC_QUOT, 
     _______, _______, _______, _______, _______, KC_PSCR, KC_0,  KC_1, KC_2, KC_3,  _______, _______, 
     _______, _______, _______,          _______,          _______,     _______,      _______, _______, _______
   ),
   [2] = LAYOUT_all( 
-    RESET, KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_MINS,    KC_EQL, KC_BSLS,    KC_GRV, 
-    _______, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   _______, KC_LEFT, KC_RIGHT, _______, _______, 
-    _______, _______, KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  _______, KC_DOWN, _______, _______, 
+    RESET, KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,    KC_F6,    KC_F7,    KC_MINS,    KC_EQL, KC_BSLS,    KC_GRV, 
+    _______, KC_AUDIO_VOL_UP, KC_AUDIO_VOL_DOWN,   KC_AUDIO_MUTE,   _______,   _______,   _______,   _______,   _______, _______, _______, _______, 
+    _______, _______, _______,   _______,   _______,   _______,  _______,  _______,  _______, _______, _______, _______, 
     _______, _______, _______,          _______,          _______,     _______,      _______, _______,  _______
   ),
-  [3] = LAYOUT_all( 
-    KC_CAPS, LSFT(KC_Q),   LSFT(KC_W),    LSFT(KC_E),    LSFT(KC_R),    LSFT(KC_T),    LSFT(KC_Y),    KC_7,    KC_8,    KC_UP, _______,    _______, 
-    _______, LSFT(KC_A),   LSFT(KC_S),   LSFT(KC_D),   LSFT(KC_F),   LSFT(KC_G),   KC_F6,   _______, KC_LEFT, KC_RIGHT, _______, _______, 
-    _______, _______, LSFT(KC_Z),   LSFT(KC_X),   LSFT(KC_C),   LSFT(KC_V),  LSFT(KC_B),  KC_F12,  _______, KC_DOWN, _______, _______, 
+  [3] = LAYOUT_all( /* could probably use RSHIFT as a full modifier; use LSHIFT exclusively for SHIFT */
+    KC_CAPS, LSFT(KC_Q),   LSFT(KC_W),    LSFT(KC_E),    LSFT(KC_R),    LSFT(KC_T),    _______,    _______,    _______,    KC_UP, _______,    _______, 
+    _______, LSFT(KC_A),   LSFT(KC_S),   LSFT(KC_D),   LSFT(KC_F),   LSFT(KC_G),   _______,   _______, KC_LEFT, KC_RIGHT, _______, _______, 
+    _______, _______, LSFT(KC_Z),   LSFT(KC_X),   LSFT(KC_C),   LSFT(KC_V),  LSFT(KC_B),  _______,  _______, KC_DOWN, _______, _______, 
     _______, _______, _______,          _______,          _______,     _______,      _______, _______,  _______
   )
 
